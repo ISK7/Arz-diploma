@@ -1,0 +1,11 @@
+.label {
+    display: inline;
+    margin-top: 10px;
+    min-height: 30px;
+    min-width: 80%;
+    text-align: start;
+    font-size: large;
+    padding: 10px;
+    border-radius: 10px;
+    box-sizing: border-box;
+}

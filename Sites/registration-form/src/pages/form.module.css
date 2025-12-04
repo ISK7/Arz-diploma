@@ -1,0 +1,19 @@
+.text {
+    font-size: large;
+}
+
+.error {
+    font-size: small;
+    color: red
+}
+
+.button {
+    font-size: large;
+    display: inline;
+    margin-top: 10px;
+    min-height: 30px;
+    min-width: 80%;
+    padding: 10px;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
