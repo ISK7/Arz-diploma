@@ -1,29 +1,28 @@
 import PhoneInput from "react-phone-number-input/input"
 import styles from "./label.module.css"
-import { useState } from "react";
 
-export const TextLabel = ({plhld, ident}) => {
-    let [inputValue, setInputValue] = useState('Initial Value');
+export const TextLabel = ({plhld, ident, value, onChange}) => {
     return (
     <input
       type="text"
       id={ident}
+      value={value}
       placeholder={plhld}
       className={styles.label}
-      onChange={() => {}}
+      onChange={onChange}
     />
   );
 }
 
-export const PhoneLabel = ({num, plhld, ident}) => {
+export const PhoneLabel = ({plhld, ident, value, onChange}) => {
     return (
     <PhoneInput
       defaultCountry="RU"
       id={ident}
+      value={value}
       placeholder={plhld}
-      defaultValue={num}
       className={styles.label}
-      onChange={() => {}}
+      onChange={onChange}
     />
   );
 }
