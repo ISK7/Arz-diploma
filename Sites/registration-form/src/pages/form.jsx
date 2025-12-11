@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PhoneLabel, TextLabel } from "../fragments/label";
+import { EmailLabel, TextLabel } from "../fragments/label";
 import styles from "./form.module.css"
 import {data} from "../classes/data.js"
 import { request } from "../api/regApi.js";
@@ -42,15 +42,16 @@ export default function Form() {
         reqst.name = name.trim();
         reqst.second_name = secName.trim();
         reqst.patronim = patr.trim();
-        reqst.phone = numb;
+        reqst.phone = numb.trim();
 
         setLoading(true);
 
         try {
             const resp = await request(reqst);
             console.log(resp)
-            setResponse("Ожидайте сообщение от нашего телеграмм-бота");
+            setResponse("Ожидайте QR-код на указанную электронную почту");
         } catch (e) {
+            console.log(e);
             setResponse("Ошибка отправки запроса");
         } finally {
             setLoading(false);
@@ -72,8 +73,8 @@ export default function Form() {
             <TextLabel plhld={"Отчество"} ident={"patronim"} value={patr} onChange={e => setPatr(e.target.value)}/> <br/>
             {noPatr && <div className={styles.error}>Введите отчество</div>}
 
-            <PhoneLabel plhld={"Номер телефона"} ident={"number"} value={numb} onChange={e => setNumb(e.value)}/> <br/>
-            {noNumb && <div className={styles.error}>Введите номер</div>}
+            <EmailLabel plhld={"Электронная почта"} ident={"number"} value={numb} onChange={e => setNumb(e.target.value)}/> <br/>
+            {noNumb && <div className={styles.error}>Введите почту</div>}
 
             <button className={styles.button} id="send_button" onClick={CheckAndSend} disabled={loading}>
                 {loading ? "Отправка..." : "Отправить данные"}

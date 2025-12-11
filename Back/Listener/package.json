@@ -1,14 +1,18 @@
 {
   "type": "module",
-   "scripts": {
+  "scripts": {
     "dev": "node --experimental-strip-types --watch ./src/index.ts"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.0",
     "cors": "^2.8.5",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.5"
+    "@types/express": "^5.0.5",
+    "@types/jsonwebtoken": "^9.0.10",
+    "prisma": "^6.19.0"
   }
 }

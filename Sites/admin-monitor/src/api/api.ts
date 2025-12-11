@@ -1,28 +1,63 @@
-const BASE_URL = "http://localhost:3000/pharmacygardenadmin";
+import type { data } from "../classes/data.ts";
 
-export async function getList(): Promise<string> {
-  const res = await fetch(BASE_URL, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" , "Access-Control-Allow-Origin": "*"},
+const BASE_URL = "http://localhost:3000/pharmacygarden";
+
+export async function logIn(password:string): Promise<string> {
+  const res = await fetch(BASE_URL + "/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password })
   });
-  return res.json();
+
+  if (res.ok) {
+    const { token } = await res.json();
+    localStorage.setItem("token", token);
+  } else {
+    return res.statusText.toString();
+  }
+  return "OK"
+}
+
+export async function getList(): Promise<data[]> {
+  const token = localStorage.getItem("token");
+  const res = await fetch(BASE_URL + "/admin", {
+    method: "GET",
+    headers: { "Access-Control-Allow-Origin": "*", "Authorization": `Bearer ${token}`},
+  });
+
+  if (!res.ok) {
+    throw new Error(`getList failed: ${res.status}`);
+  }
+    return res.json();
 }
 
 
 export async function accept(ind: number) {
-  const res = await fetch(BASE_URL, {
-    method: "UPDATE",
-    headers: { "Content-Type": "application/json" , "Access-Control-Allow-Origin": "*"},
-    body: JSON.stringify(ind),
+  const token = localStorage.getItem("token");
+  const res = await fetch(BASE_URL + "/admin", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" , "Access-Control-Allow-Origin": "*", "Authorization": `Bearer ${token}`},
+    body: JSON.stringify({ind}),
   });
+
+  if (!res.ok) {
+    throw new Error(`accept failed: ${res.status}`);
+  }
+
   return res.json();
 }
 
 export async function refuse(ind: number) {
-  const res = await fetch(BASE_URL, {
+  const token = localStorage.getItem("token");
+  const res = await fetch(BASE_URL + "/admin", {
     method: "DELETE",
-    headers: { "Content-Type": "application/json" , "Access-Control-Allow-Origin": "*"},
-    body: JSON.stringify(ind),
+    headers: { "Content-Type": "application/json" , "Access-Control-Allow-Origin": "*", "Authorization": `Bearer ${token}`},
+    body: JSON.stringify({ind}),
   });
+
+   if (!res.ok) {
+    throw new Error(`refuse failed: ${res.status}`);
+  }
+
   return res.json();
 }

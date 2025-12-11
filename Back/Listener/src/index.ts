@@ -3,8 +3,8 @@ import cors from "cors";
 import router from "./router.ts";
 
 const PORT = 3000;
-const whitelist = ['http://localhost:5173', /** other domains if any */ ]
-const path = "/pharmacygardenreg"
+const whitelist = ['http://localhost:5173', 'http://localhost:5174'/** other domains if any */ ]
+const path = "/pharmacygarden"
 
 
 const app = express();

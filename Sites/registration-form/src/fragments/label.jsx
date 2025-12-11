@@ -14,10 +14,10 @@ export const TextLabel = ({plhld, ident, value, onChange}) => {
   );
 }
 
-export const PhoneLabel = ({plhld, ident, value, onChange}) => {
+export const EmailLabel = ({plhld, ident, value, onChange}) => {
     return (
-    <PhoneInput
-      defaultCountry="RU"
+    <input
+      type="email"
       id={ident}
       value={value}
       placeholder={plhld}

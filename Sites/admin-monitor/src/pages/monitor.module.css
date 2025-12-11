@@ -1,0 +1,13 @@
+.text {
+    font-size: medium;
+}
+
+.error {
+    align-self: flex-start;
+    font-size: small;
+    color: red
+}
+
+.monitor {
+    display: inline-block;
+}

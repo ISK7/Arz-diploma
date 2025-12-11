@@ -1,0 +1,13 @@
+.text {
+    font-size: medium;
+}
+
+.error {
+    font-size: small;
+    color: red
+}
+
+.visitor_label {
+    margin-top: 5%;
+    padding-top: 5%;
+}
