@@ -25,9 +25,13 @@ async function sendEmail(to: string, qrDataUrl: string) {
     await transporter.sendMail(mailOptions);
 }
 
-export async function sendMail(mail: string) {
+export async function sendToMail(mail: string){
     const message = pickRandomMessage();
     const qr = await generateQrCode(message);
-    await sendEmail(mail, qr);
-    return 1;
+    try {
+        await sendEmail(mail, qr);
+        return 1;
+    } catch {
+        return -1
+    }
 }

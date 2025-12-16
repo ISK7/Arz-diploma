@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { sendMail } from "./tg_connection.ts";
+import { sendToMail } from "./tg_connection.ts";
 import {prisma} from "./db_connection.ts"
 import jwt from "jsonwebtoken";
 import {ADMIN_PASSWORD, JWT_KEY, FILEPATH} from "./variables.ts";
@@ -121,11 +121,18 @@ router.put("/admin", authMiddleware, async (req : any, res : any) => {
             }
         });
         if(found) {
+            if (found.image) {
+                await fs.unlink(found.image);
+            }
             const mail = found.email;
-            const result = sendMail(mail)
-                .then(() => console.log(`QR-code sent to ${mail}`))
-                .catch(console.error);
-            res.json(result)
+            const result = await sendToMail(mail)
+                .then(() => {console.log(`QR-code sent to ${mail}`); return 1;})
+                .catch(() => {console.error; return -1});
+            if (result == 1) {
+                res.json(result)
+            } else {
+                res.status(500).json({ error: "Can't send mail" });
+            }
             await prisma.visitors.delete({
                 where: {
                     id: req.body.ind

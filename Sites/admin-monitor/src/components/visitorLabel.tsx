@@ -1,6 +1,7 @@
 import type { data } from "../classes/data"
 import { accept, getFile, refuse } from "../api/api";
 import { useEffect, useState } from "react";
+// import styles from "./visitorLabel.model.css"
 
 export const VisitorLabel = ({visitor}: {visitor: data}) => {
     const [loading, setLoading] = useState(false);
@@ -15,7 +16,7 @@ export const VisitorLabel = ({visitor}: {visitor: data}) => {
             await accept(visitor.id);
             setHidden(true);
         } catch (e) {
-            setError("Ошибка при подтверждении");
+            setError("Ошибка при подтверждении: " + e);
         } finally {
             setLoading(false);
         }
@@ -28,7 +29,7 @@ export const VisitorLabel = ({visitor}: {visitor: data}) => {
             await refuse(visitor.id);
             setHidden(true);
         } catch (e) {
-            setError("Ошибка при отказе");
+            setError("Ошибка при отказе: " + e);
         } finally {
             setLoading(false);
         }
@@ -72,7 +73,7 @@ export const VisitorLabel = ({visitor}: {visitor: data}) => {
                     <br/>
                 </div>}
                 {visitor.image && image &&
-                <div><img className="text" alt="Что-то пошло не так" src={image}></img></div>}
+                <div><img className="img" alt="Что-то пошло не так" src={image}></img></div>}
 
                 {error && <div className="error">{error}</div>}
 
