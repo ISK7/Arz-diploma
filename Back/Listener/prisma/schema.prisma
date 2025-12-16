@@ -19,7 +19,9 @@ model Visitors {
   name String
   second_name String
   patronim String
-  phone String
+  email String
+  number String?
+  image String?
   
-  @@unique([name, second_name, patronim, phone])
+  @@unique([name, second_name, patronim, email])
 }

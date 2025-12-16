@@ -31,7 +31,7 @@ export default function Monitor() {
             <br/>
             {(loading || !visitors) && <>Загрузка...</>}
             {!loading && visitors && visitors.length > 0 && visitors.map(vis => (
-                <VisitorLabel visitor={vis}></VisitorLabel>
+                <VisitorLabel visitor={vis} key={vis.id}></VisitorLabel>
             ))}
             {!loading && visitors && visitors.length == 0 && <>Ожидающих нет</>}
         </div>

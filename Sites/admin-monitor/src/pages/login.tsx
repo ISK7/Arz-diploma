@@ -29,7 +29,7 @@ export default function LoginPage() {
         <div>
             <input disabled={loading} type="password" value={password}
                    onChange={e => setPassword(e.target.value)} />
-            <label>{error}</label>
+            <label>{error}</label><br/>
             <button type="button" onClick={login}>Войти</button>
         </div>
     );

@@ -25,3 +25,5 @@ dist-ssr
 
 /src/generated/prisma
 .env
+src/files/*
+!/src/files/placeholder.svg

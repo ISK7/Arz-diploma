@@ -3,5 +3,7 @@ export interface data {
     name: string
     second_name: string
     patronim: string
-    phone: string
+    email: string
+    number?: string
+    image?: string
 }

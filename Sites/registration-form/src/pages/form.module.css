@@ -1,6 +1,9 @@
 .text {
     font-size: large;
 }
+.small_text {
+    font-size: small;
+}
 
 .error {
     font-size: small;

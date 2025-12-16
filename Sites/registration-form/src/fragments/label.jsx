@@ -26,3 +26,27 @@ export const EmailLabel = ({plhld, ident, value, onChange}) => {
     />
   );
 }
+
+export const PhoneLabel = ({plhld, ident, value, onChange}) => {
+  return (
+    <PhoneInput
+      id={ident}
+      value={value}
+      placeholder={plhld}
+      className={styles.label}
+      onChange={onChange}
+    />
+  )
+}
+
+export const FileLabel = ({plhld, ident, onChange}) => {
+  return (
+    <input
+      type="file"
+      id={ident}
+      placeholder={plhld}
+      className={styles.label}
+      onChange={onChange}
+    />
+  )
+}

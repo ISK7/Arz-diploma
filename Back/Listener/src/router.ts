@@ -1,8 +1,30 @@
 import { Router } from "express";
-import { connectTG, sendMail } from "./tg_connection.ts";
+import { sendMail } from "./tg_connection.ts";
 import {prisma} from "./db_connection.ts"
 import jwt from "jsonwebtoken";
-import {ADMIN_PASSWORD, JWT_KEY} from "./variables.ts";
+import {ADMIN_PASSWORD, JWT_KEY, FILEPATH} from "./variables.ts";
+import multer from "multer";
+import path from 'path';
+import crypto from 'crypto';
+import fs from 'fs/promises';
+
+const storage = multer.diskStorage({
+  destination: (req: any, file: any, cb: any) => {
+    cb(null, FILEPATH);
+  },
+  filename: (req: any, file: any, cb: any) => {
+    const ext = path.extname(file.originalname);
+    const name = crypto.randomUUID();
+    cb(null, `${name}${ext}`);
+  }
+});
+
+export const upload = multer({
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB
+  }
+});
 
 function authMiddleware(req: any, res: any, next: () => void) {
     const auth = req.headers.authorization;
@@ -37,25 +59,32 @@ router.post("/login", (req, res) => {
     res.json({ token });
 });
 
-router.post("/reg", async (req : any, res : any) => {
-    console.log(req.body);
+router.post("/reg", upload.single("file"), async (req : any, res : any) => {
+    const {name, second_name, patronim, email, number} = req.body;
+    const filePath = req.file ? req.file.filename : null;
+
     try {
         await prisma.visitors.create({
             data: {
-                name: req.body.name,
-                second_name: req.body.second_name,
-                patronim: req.body.patronim,
-                phone: req.body.phone
+                name: name,
+                second_name: second_name,
+                patronim: patronim,
+                email: email,
+                number: number,
+                image: filePath
             }
         });
-    const sent = await connectTG();
-    res.json(sent);
+
+        res.json(1);
     } catch (err: any) {
         // Ошибка уникальности
         if (err.code === "P2002") {
             return res.status(409).json({
                 error: "Данные уже существуют в базе"
             });
+        }
+        if (req.file) {
+            await fs.unlink(req.file.path);
         }
 
         console.error("DB error:", err);
@@ -65,13 +94,22 @@ router.post("/reg", async (req : any, res : any) => {
 
 router.get("/admin", authMiddleware, async (req, res) => {
     try {
-        console.log("visitors request");
-        const users = await prisma.visitors.findMany();
-        res.json(users);
+        const visitors = await prisma.visitors.findMany();
+        const result = visitors;
+        res.json(result);
     } catch (err) {
         console.error("Database error:", err);
         res.status(500).json({ error: "Database error" });
     }
+});
+
+router.get('/admin/:name', authMiddleware, (req, res) => {
+    const filePath = path.join(
+        process.cwd(),
+        FILEPATH,
+        req.params.name
+    );
+    res.sendFile(filePath);
 });
 
 router.put("/admin", authMiddleware, async (req : any, res : any) => {
@@ -83,8 +121,10 @@ router.put("/admin", authMiddleware, async (req : any, res : any) => {
             }
         });
         if(found) {
-            const mail = found.phone;
+            const mail = found.email;
             const result = sendMail(mail)
+                .then(() => console.log(`QR-code sent to ${mail}`))
+                .catch(console.error);
             res.json(result)
             await prisma.visitors.delete({
                 where: {
@@ -104,6 +144,14 @@ router.put("/admin", authMiddleware, async (req : any, res : any) => {
 router.delete("/admin", authMiddleware, async (req : any, res : any) => {
     try {
         console.log(`refuse request: ${req.body.ind}`);
+        const found = await prisma.visitors.findUnique({
+            where: {
+                id: req.body.ind
+            }
+        });
+        if (found && found.image) {
+            await fs.unlink(found.image);
+        }
         await prisma.visitors.delete({
             where: {
                 id: req.body.ind

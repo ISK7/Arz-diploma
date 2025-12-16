@@ -22,7 +22,8 @@ export async function getList(): Promise<data[]> {
   const token = localStorage.getItem("token");
   const res = await fetch(BASE_URL + "/admin", {
     method: "GET",
-    headers: { "Access-Control-Allow-Origin": "*", "Authorization": `Bearer ${token}`},
+    headers: {
+      "Authorization": `Bearer ${token}`},
   });
 
   if (!res.ok) {
@@ -31,12 +32,24 @@ export async function getList(): Promise<data[]> {
     return res.json();
 }
 
+export async function getFile(name: string): Promise<string> {
+  const token = localStorage.getItem("token");
+  const res = await fetch(BASE_URL + `/admin/${name}`, {
+    method: "GET",
+    headers: { "Authorization": `Bearer ${token}`},
+  });
+
+  if (!res.ok) {
+    throw new Error(`getFile failed: ${res.status}`);
+  }
+  return URL.createObjectURL(await res.blob());
+}
 
 export async function accept(ind: number) {
   const token = localStorage.getItem("token");
   const res = await fetch(BASE_URL + "/admin", {
     method: "PUT",
-    headers: { "Content-Type": "application/json" , "Access-Control-Allow-Origin": "*", "Authorization": `Bearer ${token}`},
+    headers: { "Content-Type": "application/json" , "Authorization": `Bearer ${token}`},
     body: JSON.stringify({ind}),
   });
 
@@ -51,7 +64,7 @@ export async function refuse(ind: number) {
   const token = localStorage.getItem("token");
   const res = await fetch(BASE_URL + "/admin", {
     method: "DELETE",
-    headers: { "Content-Type": "application/json" , "Access-Control-Allow-Origin": "*", "Authorization": `Bearer ${token}`},
+    headers: { "Content-Type": "application/json" , "Authorization": `Bearer ${token}`},
     body: JSON.stringify({ind}),
   });
 

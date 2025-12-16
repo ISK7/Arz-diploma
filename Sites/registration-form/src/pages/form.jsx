@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { EmailLabel, TextLabel } from "../fragments/label";
+import { EmailLabel, FileLabel, PhoneLabel, TextLabel } from "../fragments/label";
 import styles from "./form.module.css"
 import {data} from "../classes/data.js"
 import { request } from "../api/regApi.js";
@@ -9,13 +9,17 @@ export default function Form() {
     const [name, setName] = useState("");
     const [secName, setSecName] = useState("");
     const [patr, setPatr] = useState("");
-    const [numb, setNumb] = useState("");
+    const [email, setEmail] = useState("");
+    const [number, setNumber] = useState("");
+    const [agreement, setAgreement] = useState(false);
+    const [file, setFile] = useState("");
 
     //Для вывода ошибок
     const [noName, setNoName] = useState(false);
     const [noSecName, setNoSecName] = useState(false);
     const [noPatr, setNoPatr] = useState(false);
-    const [noNumb, setNoNumb] = useState(false);
+    const [noEmail, setNoEmail] = useState(false);
+    const [noData, setNoData] = useState(false);
 
     //Для связи с сервером
     const [response, setResponse] = useState(null);
@@ -27,13 +31,15 @@ export default function Form() {
         setNoName(name.trim() == "");
         setNoSecName(secName.trim() == "");
         setNoPatr(patr.trim() == "");
-        setNoNumb(numb == "");
+        setNoEmail(email.trim() == "");
+        setNoData(number == "" && !file)
             
         if (
             name.trim() == "" ||
             secName.trim() == "" ||
             patr.trim() == "" ||
-            numb == ""
+            email.trim() == "" ||
+            noData
         ) {
             return;
         }
@@ -42,7 +48,9 @@ export default function Form() {
         reqst.name = name.trim();
         reqst.second_name = secName.trim();
         reqst.patronim = patr.trim();
-        reqst.phone = numb.trim();
+        reqst.email = email.trim();
+        reqst.number = number;
+        reqst.file = file;
 
         setLoading(true);
 
@@ -73,10 +81,17 @@ export default function Form() {
             <TextLabel plhld={"Отчество"} ident={"patronim"} value={patr} onChange={e => setPatr(e.target.value)}/> <br/>
             {noPatr && <div className={styles.error}>Введите отчество</div>}
 
-            <EmailLabel plhld={"Электронная почта"} ident={"number"} value={numb} onChange={e => setNumb(e.target.value)}/> <br/>
-            {noNumb && <div className={styles.error}>Введите почту</div>}
+            <EmailLabel plhld={"Электронная почта"} ident={"email"} value={email} onChange={e => setEmail(e.target.value)}/> <br/>
+            {noEmail && <div className={styles.error}>Введите почту</div>}
 
-            <button className={styles.button} id="send_button" onClick={CheckAndSend} disabled={loading}>
+            <PhoneLabel plhld={"Номер телефона"} ident={"number"} value={number} onChange={setNumber}/> <br/>
+            <FileLabel plhld={""} ident={"file"} onChange={e => setFile(e.target.files?.[0])}/> <br/>
+            {noData && <div className={styles.error}>Необходим либо номер телефона либо фото документа, подтверждающего личность</div>}
+
+            <input type="checkbox" id="agreement" onChange={(e) => setAgreement(e.target.checked)} />
+            <label htmlFor="agreement" className={styles.small_text}>Я даю согласие на обработку персональных данных.</label>
+
+            <button className={styles.button} id="send_button" onClick={CheckAndSend} disabled={(loading || !agreement)}>
                 {loading ? "Отправка..." : "Отправить данные"}
             </button>
             {response && (
