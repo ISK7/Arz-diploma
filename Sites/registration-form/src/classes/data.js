@@ -3,6 +3,7 @@ export class data {
     second_name = ""
     patronim = ""
     email = ""
+    wish = ""
     number = ""
     file = null
 }

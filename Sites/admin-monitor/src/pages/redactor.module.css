@@ -1,0 +1,18 @@
+.text {
+    font-size: large;
+}
+
+.error {
+    align-self: flex-start;
+    font-size: medium;
+    color: red
+}
+
+.img {
+    width: 500px;
+    height: auto;
+}
+
+.select {
+    color: rgb(50, 50, 50);
+}

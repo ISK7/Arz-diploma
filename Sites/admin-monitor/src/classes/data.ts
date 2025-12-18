@@ -6,4 +6,8 @@ export interface data {
     email: string
     number?: string
     image?: string
+    key?: string
+    date?: string
+    wish?: string
+    status: number 
 }

@@ -13,6 +13,7 @@ export default function Form() {
     const [number, setNumber] = useState("");
     const [agreement, setAgreement] = useState(false);
     const [file, setFile] = useState("");
+    const [wish, setWish] = useState("");
 
     //Для вывода ошибок
     const [noName, setNoName] = useState(false);
@@ -49,6 +50,7 @@ export default function Form() {
         reqst.second_name = secName.trim();
         reqst.patronim = patr.trim();
         reqst.email = email.trim();
+        reqst.wish = wish.trim();
         reqst.number = number;
         reqst.file = file;
 
@@ -70,19 +72,22 @@ export default function Form() {
     return (
         <div>
             <h2>Регистрация на посещение аптекарского огорода</h2>
-            <div className={styles.text}>Введите необходимые данные и ждите ответа от Telegram-бота</div> <br/>
+            <div className={styles.text}>Введите необходимые данные и ждите ответа на почту</div> <br/>
+            <div className={styles.text}>Обязательно введите имя, фамилию, отчество, электронную почту и файл с документом, подтверждающим личность</div> <br/>
 
-            <TextLabel plhld={"Имя"} ident={"name"} value={name} onChange={e => setName(e.target.value)}/> <br/>
+            <TextLabel plhld={"Имя*"} ident={"name"} value={name} onChange={e => setName(e.target.value)}/> <br/>
             {noName && <div className={styles.error}>Введите имя</div>}
 
-            <TextLabel plhld={"Фамилия"} ident={"second_name"} value={secName} onChange={e => setSecName(e.target.value)}/> <br/>
+            <TextLabel plhld={"Фамилия*"} ident={"second_name"} value={secName} onChange={e => setSecName(e.target.value)}/> <br/>
             {noSecName && <div className={styles.error}>Введите фамилию</div>}
 
-            <TextLabel plhld={"Отчество"} ident={"patronim"} value={patr} onChange={e => setPatr(e.target.value)}/> <br/>
+            <TextLabel plhld={"Отчество*"} ident={"patronim"} value={patr} onChange={e => setPatr(e.target.value)}/> <br/>
             {noPatr && <div className={styles.error}>Введите отчество</div>}
 
-            <EmailLabel plhld={"Электронная почта"} ident={"email"} value={email} onChange={e => setEmail(e.target.value)}/> <br/>
+            <EmailLabel plhld={"Электронная почта*"} ident={"email"} value={email} onChange={e => setEmail(e.target.value)}/> <br/>
             {noEmail && <div className={styles.error}>Введите почту</div>}
+
+            <TextLabel plhld={"Предпочтения"} ident={"wish"} value={wish} onChange={e => setWish(e.target.value)}/> <br/>
 
             <PhoneLabel plhld={"Номер телефона"} ident={"number"} value={number} onChange={setNumber}/> <br/>
             <FileLabel plhld={""} ident={"file"} onChange={e => setFile(e.target.files?.[0])}/> <br/>

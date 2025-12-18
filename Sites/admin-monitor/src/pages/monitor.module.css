@@ -2,6 +2,10 @@
     font-size: medium;
 }
 
+.small_text {
+    font-size: small;
+}
+
 .error {
     align-self: flex-start;
     font-size: small;

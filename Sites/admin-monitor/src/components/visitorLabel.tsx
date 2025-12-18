@@ -1,35 +1,24 @@
 import type { data } from "../classes/data"
-import { accept, getFile, refuse } from "../api/api";
+import { getFile } from "../api/api";
 import { useEffect, useState } from "react";
-// import styles from "./visitorLabel.model.css"
+import { useNavigate } from 'react-router-dom';
+import styles from "./visitorLabel.module.css"
 
 export const VisitorLabel = ({visitor}: {visitor: data}) => {
     const [loading, setLoading] = useState(false);
-    const [hidden, setHidden] = useState(false);
+    const [status, setStatus] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [image, setImage] = useState<string | null>(null);
+    
+    const navigate = useNavigate();
 
-    async function handleAccept() {
+    async function handleRedact() {
         setLoading(true);
         setError(null);
         try {
-            await accept(visitor.id);
-            setHidden(true);
+            navigate(`/admin/${visitor.id}`, { state: { item: visitor, img: image } });
         } catch (e) {
-            setError("Ошибка при подтверждении: " + e);
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    async function handleRefuse() {
-        setLoading(true);
-        setError(null);
-        try {
-            await refuse(visitor.id);
-            setHidden(true);
-        } catch (e) {
-            setError("Ошибка при отказе: " + e);
+            setError(`Ошибка при попытке вызова редактора: ${e}`);
         } finally {
             setLoading(false);
         }
@@ -60,34 +49,35 @@ export const VisitorLabel = ({visitor}: {visitor: data}) => {
         };
     }, [visitor.image]);
 
+    useEffect(() => {
+        switch(visitor.status) {
+            case 0: setStatus("Ожидает"); break;
+            case -1: setStatus("Отклонена"); break;
+            case 1: setStatus("Подтверждена"); break;
+            case 2: setStatus("Архивирована"); break;
+        }
+    }, [visitor.status])
+
     return (
-        <div className="visitor_label">
-            {!hidden &&
-            <div>
-                <div className="text">
-                    {visitor.name} {visitor.second_name} {visitor.patronim} {visitor.email}
-                </div><br/>
-                {visitor.number &&
-                <div className="text">
-                    {visitor.number}
-                    <br/>
-                </div>}
-                {visitor.image && image &&
-                <div><img className="img" alt="Что-то пошло не так" src={image}></img></div>}
+        <div className={styles.visitor_label}>
+            <div className={styles.text}>
+                {visitor.name} {visitor.second_name} {visitor.patronim} {visitor.email}
+            </div><br/>
+            {visitor.number &&
+            <div className={styles.text}> {visitor.number}<br/> </div>}
+            {visitor.image && image &&
+            <div><img className={styles.img} alt="Что-то пошло не так" src={image}></img></div>}
+            {visitor.wish &&
+            <div className={styles.text}> {visitor.wish}<br/> </div>}
 
-                {error && <div className="error">{error}</div>}
+            <div className={styles.text}> {status}<br/> </div>
 
-                <button disabled={loading} onClick={handleAccept}>
-                    Разрешить
-                </button>
-                <button disabled={loading} onClick={handleRefuse}>
-                    Отклонить
-                </button>
+            {error && <div className={styles.error}>{error}</div>}
 
-                {loading && <div className="loading">Отправка...</div>}
-                <hr></hr>
-            </div>
-            }
+            <button disabled={loading} onClick={handleRedact}>
+                Редактировать
+             </button>
+            <hr></hr>
         </div>
     );
 };

@@ -22,6 +22,15 @@ model Visitors {
   email String
   number String?
   image String?
-  
+  key String?
+  date DateTime?
+  wish String?
+  status Int
+
   @@unique([name, second_name, patronim, email])
+}
+
+model Keys {
+  key String @id
+  isFree Boolean
 }

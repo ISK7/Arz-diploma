@@ -1,8 +1,8 @@
 import nodemailer from "nodemailer";
-import { pickRandomMessage, generateQrCode } from "./qr_generator.ts";
+import { generateQrCode } from "./qr_generator.ts";
 import { MAILADRES, MAILPASSWORD } from "./variables.ts";
 
-async function sendEmail(to: string, qrDataUrl: string) {
+async function sendEmail(to: string, ind: number, date: string, qrDataUrl: string) {
     const transporter = nodemailer.createTransport({
         host: "smtp.yandex.ru",
         port: 587,
@@ -16,7 +16,7 @@ async function sendEmail(to: string, qrDataUrl: string) {
     const mailOptions = {
         from: "UNN Service",
         to,
-        subject: "Ваш QR-код для посещения аптекарского огорода",
+        subject: `Заявка № ${ind}. Приходите в следующую дату: ${date}. В случае, если вы хотите обратиться в техподдержку, напишите на почту иии@ру и укажите НОМЕР заявки`,
         html: `
         <img src="${qrDataUrl}" alt="QR" />
         `,
@@ -25,11 +25,10 @@ async function sendEmail(to: string, qrDataUrl: string) {
     await transporter.sendMail(mailOptions);
 }
 
-export async function sendToMail(mail: string){
-    const message = pickRandomMessage();
-    const qr = await generateQrCode(message);
+export async function sendToMail(mail: string, ind: number, date: string, key: string){
+    const qr = await generateQrCode(key);
     try {
-        await sendEmail(mail, qr);
+        await sendEmail(mail, ind, date, qr);
         return 1;
     } catch {
         return -1

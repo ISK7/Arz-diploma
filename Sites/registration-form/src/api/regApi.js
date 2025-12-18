@@ -7,6 +7,7 @@ export async function request(request) {
   formData.append('second_name', request.second_name);
   formData.append('patronim', request.patronim);
   formData.append('email', request.email);
+  formData.append('wish', request.wish);
   formData.append('number', request.number);
   formData.append('file', file);
   const res = await fetch(BASE_URL, {
