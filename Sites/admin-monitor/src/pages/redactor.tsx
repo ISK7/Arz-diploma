@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Select from 'react-select'
-import { accept, getKeys, refuse, close } from '../api/api';
+import { accept, getKeys, refuse, close, getFile, checkRights } from '../api/api';
 import styles from "./redactor.module.css"
 import type { data } from '../classes/data';
 
@@ -32,7 +32,6 @@ export default function VisitorRedactor() {
         try {
             await accept(visitor.id, key, date);
             setStatus("Подтверждена");
-            navigate("/admin");
         } catch (e) {
             setError("Ошибка при подтверждении: " + e);
         } finally {
@@ -46,7 +45,6 @@ export default function VisitorRedactor() {
         try {
             await refuse(visitor.id);
             setStatus("Отклонена");
-            navigate("/admin");
         } catch (e) {
             setError("Ошибка при отказе: " + e);
         } finally {
@@ -60,7 +58,6 @@ export default function VisitorRedactor() {
         try {
             await close(visitor.id);
             setStatus("Архивирована");
-            navigate("/admin");
         } catch (e) {
             setError("Ошибка при закрытии: " + e);
         } finally {
@@ -68,7 +65,22 @@ export default function VisitorRedactor() {
         }
     }
 
+    async function handleExit() {
+        setLoading(true);
+        setError(null);
+        try {
+            navigate(`/admin`);
+        } catch (e) {
+            setError(`Ошибка при попытке выходе из редактора: ${e}`);
+        } finally {
+            setLoading(false);
+        }
+    }
+
     useEffect(() => {
+        (async () => {let acess = await checkRights();
+            if(!acess) return(<div className={styles.text}>You do not have acess to this page</div>)
+        });
         if(visitor.date)
             setDate(visitor.date);
 
@@ -95,29 +107,28 @@ export default function VisitorRedactor() {
     }, [visitor.status]);
 
     useEffect(() => {
-            setImage(null);
-            let objectUrl: string;
-            let cancelled = false;
-            const url = visitor.image;
-            (async () => {
-                try {
-                    if (!visitor.image || !url) return;
-                    if (!cancelled) {
-                        objectUrl = url;
-                        setImage(objectUrl);
-                        console.log(objectUrl);
-                    }
-                } catch {
-                    setError("Ошибка при загрузке файла");
+        setImage(null);
+        let objectUrl: string;
+        let cancelled = false;
+        (async () => {
+            try {
+                if (!visitor.image) return;
+                if (!cancelled) {
+                    objectUrl = await getFile(visitor.image);
+                    setImage(objectUrl);
+                    console.log(objectUrl);
                 }
-            })();
-    
-            return () => {
-                cancelled = true;
-                if (objectUrl) {
-                    URL.revokeObjectURL(objectUrl);
-                }
-            };
+            } catch {
+                setError("Ошибка при загрузке файла");
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+            }
+        };
     }, [visitor.image]);
 
     useEffect(() => {
@@ -129,34 +140,46 @@ export default function VisitorRedactor() {
     return (
         <div>
             <div className={styles.text}>
-                {visitor.name} {visitor.second_name} {visitor.patronim}
-                <br/>
-                {visitor.email}
-                <br/>
-                {visitor.wish}
-                <br/>
+                <div className={styles.border}>
+                    {visitor.name} {visitor.second_name} {visitor.patronim}
+                    <br/>
+                    {visitor.email}
+                    <br/>
+                    {visitor.number &&
+                    <div className={styles.text}> {visitor.number}<br/> </div>}
+                </div>
+                <div className={styles.border}>
+                    Предпочтения визита:
+                    <br/>
+                    {visitor.wish}
+                    <br/>
+                </div>
             </div>
-            {visitor.number &&
-            <div className={styles.text}> {visitor.number}<br/> </div>}
-
+            
             {visitor.image && image &&
             <div><img className={styles.img} alt="Что-то пошло не так" src={image}></img></div>}
             <div className={styles.text}> {status}<br/> </div>
 
-            <input type="date" placeholder="Дата" value={date} onChange={e => setDate(e.target.value)}/>
-            <Select value={option} onChange={e => {if(e) setOption(e)}} className={styles.select} options={options} placeholder="Ключи"/>
+            <input type="date" placeholder="Дата" value={date} className={styles.input}
+                onChange={e => setDate(e.target.value)}/>
+            <Select value={option} onChange={e => {if(e) setOption(e)}}
+                className={styles.select} options={options} placeholder="Ключи"/>
 
             {error && <div className={styles.error}>{error}</div>}
 
-            <button disabled={loading || !ready} onClick={handleAccept}>
+            <button disabled={loading || !ready} onClick={handleAccept} className={styles.button}>
                 Подтвердить
             </button>
-            <button disabled={loading} onClick={handleRefuse}>
+            <button disabled={loading} onClick={handleRefuse} className={styles.button}>
                 Отказать
             </button>
-            <button disabled={loading} onClick={handleClose}>
-                Закрыть
+            <button disabled={loading} onClick={handleClose} className={styles.button}>
+                Закрыть заявку
+            </button> <br/>
+            <button disabled={loading} onClick={handleExit} className={styles.button}>
+                Выйти из редактора
             </button>
+
         </div>
     );
 }

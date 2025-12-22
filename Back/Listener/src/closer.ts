@@ -20,9 +20,11 @@ export default async function closer() {
         }
     });
 
+    let keysToFree = keys.filter(k => k.key != null);
+
     await prisma.keys.updateMany({
         where: {
-            key: { in: keys.map(k => k.key!) }
+            key: { in: keysToFree.map(k => k.key as string) }
         },
         data: {
             isFree: true

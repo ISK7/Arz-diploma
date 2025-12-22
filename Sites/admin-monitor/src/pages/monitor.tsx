@@ -1,7 +1,8 @@
 import { VisitorLabel } from "../components/visitorLabel";
 import { Checkbox } from "../components/checkbox";
-import { getList } from "../api/api";
+import { checkRights, getList } from "../api/api";
 import { useEffect, useState } from "react";
+import { useFiltersStore } from "../storage/filters.store";
 import type { data } from "../classes/data";
 import styles from "./monitor.module.css"
 
@@ -9,14 +10,24 @@ export default function Monitor() {
     const [loading, setLoading] = useState(true);
     const [visitors, setVisitors] = useState<data[]>();
     const [filtred, setFiltred] = useState<data[]>();
-    const [search, setSearch] = useState("");
-    const [showActual, setActual] = useState(true);
-    const [showConfirmed, setConfirmed] = useState(false);
-    const [showArchived, setArchived] = useState(false);
-    const [showDeclined, setDeclined] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const [search, setSearch] = useState("");
+    const showActual = useFiltersStore((state) => state.showActual);
+    const setActual = useFiltersStore((state) => state.setActual);
+    const showConfirmed = useFiltersStore((state) => state.showConfirmed);
+    const setConfirmed = useFiltersStore((state) => state.setConfirmed);
+    const showArchived = useFiltersStore((state) => state.showArchived);
+    const setArchived = useFiltersStore((state) => state.setArchived);
+    const showDeclined = useFiltersStore((state) => state.showDeclined);
+    const setDeclined = useFiltersStore((state) => state.setDeclined);
+
     useEffect(() => {
+        (async () => {
+            let acess = await checkRights();
+            if(!acess) return(<div className={styles.text}>You do not have acess to this page</div>)
+        });
+
         setLoading(true)
         getList().then((res) => {
             console.log(res);
@@ -62,12 +73,14 @@ export default function Monitor() {
                 <Checkbox ind="Archived" plhld="Архивированные" value={showArchived} onChange={setArchived}/>
                 <Checkbox ind="Declined" plhld="Отклонённые" value={showDeclined} onChange={setDeclined}/>
                 <br/>
-                <input type="text" placeholder="Поиск..." value={search} onChange={e => setSearch(e.target.value)}/>
+                <input type="text" placeholder="Поиск..." value={search} className={styles.input} onChange={e => setSearch(e.target.value)}/>
                 <br/>
             </>}
-            {!loading && filtred && filtred.length > 0 && filtred.map(vis => (
-                <VisitorLabel visitor={vis} key={vis.id}></VisitorLabel>
-            ))}
+            <div className={styles.list}>
+                {!loading && filtred && filtred.length > 0 && filtred.map(vis => (
+                    <VisitorLabel visitor={vis} key={vis.id}></VisitorLabel>
+                ))}
+            </div>
             {!loading && filtred && filtred.length == 0 && <>Данных нет</>}
         </div>
     );

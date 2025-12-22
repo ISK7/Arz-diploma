@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import type { key } from "../classes/key";
-import { addKey, getFullKeys, deleteKey } from "../api/api";
+import { addKey, getFullKeys, deleteKey, checkRights } from "../api/api";
 import KeyLabel from "../components/keyLabel";
+import styles from "./keys.module.css";
 
 export default function Keys () {
     const [loading, setLoading] = useState(false);
@@ -10,6 +11,10 @@ export default function Keys () {
     const [newKey, setNewKey] = useState("");
 
     useEffect(() => {
+        (async () => {let acess = await checkRights();
+            if(!acess) return(<div>You do not have acess to this page</div>)
+        });
+
         setLoading(true)
         getFullKeys().then((res) => {
             setKeys(res);
@@ -56,10 +61,16 @@ export default function Keys () {
             {(loading) && <>Загрузка...</>}
             {error && <div>{error}</div>}
             {!loading && !error && 
-                keys.map((keyObj) => ( <KeyLabel key={keyObj.key} keyVal={keyObj} handleDelete={handleDelete}/>
+            <div className={styles.list}>
+                {keys.map((keyObj) => ( <KeyLabel key={keyObj.key} keyVal={keyObj} handleDelete={handleDelete}/>
                 ))}
-            {!loading && !error && <input type="text" value={newKey} onChange={(e) => setNewKey(e.target.value)} placeholder="Новый ключ"/>}
-            {!loading && !error && <button onClick={handleAddKey}>Добавить ключ</button>}
+            </div>}
+            {!loading && !error && 
+                <div>
+                    <input type="text" value={newKey} className={styles.input}
+                        onChange={(e) => setNewKey(e.target.value)} placeholder="Новый ключ"/> <br/>
+                    <button onClick={handleAddKey} className={styles.button}>Добавить ключ</button>
+                </div>}
         </div>
     );
 }

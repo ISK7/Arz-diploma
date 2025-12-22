@@ -1,22 +1,3 @@
-.text {
-    font-size: medium;
-}
-
-.error {
-    font-size: small;
-    color: red
-}
-
-.visitor_label {
-    margin-top: 5%;
-    padding-top: 5%;
-}
-
-.img {
-    width: 200px;
-    height: auto;
-}
-
 .button {
     font-size: large;
     display: inline;
@@ -29,9 +10,4 @@
     color: #242424;
     border: 2px solid #242424;
     background-color: rgba(255, 255, 255, 0.87);
-}
-
-button:disabled {
-  color: rgba(0, 0, 0, 0.5);
-  cursor: not-allowed;
 }

@@ -62,7 +62,11 @@ export default function Form() {
             setResponse("Ожидайте QR-код на указанную электронную почту");
         } catch (e) {
             console.log(e);
-            setResponse("Ошибка отправки запроса");
+            if (e instanceof Error && e.message == "Error: request failed: 409") {
+                setResponse("Пользователь с такими данными уже ожидает подтверждения");
+            } else {
+                setResponse("Ошибка отправки запроса");
+            }
         } finally {
             setLoading(false);
         }
@@ -93,7 +97,7 @@ export default function Form() {
             <FileLabel plhld={""} ident={"file"} onChange={e => setFile(e.target.files?.[0])}/> <br/>
             {noData && <div className={styles.error}>Необходим либо номер телефона либо фото документа, подтверждающего личность</div>}
 
-            <input type="checkbox" id="agreement" onChange={(e) => setAgreement(e.target.checked)} />
+            <input type="checkbox" id="agreement" className={styles.checkbox} onChange={(e) => setAgreement(e.target.checked)} />
             <label htmlFor="agreement" className={styles.small_text}>Я даю согласие на обработку персональных данных.</label>
 
             <button className={styles.button} id="send_button" onClick={CheckAndSend} disabled={(loading || !agreement)}>

@@ -15,3 +15,27 @@
 .monitor {
     display: inline-block;
 }
+
+.input {
+    display: inline;
+    margin-top: 10px;
+    min-height: 30px;
+    height: auto;
+    min-width: 40%;
+    text-align: start;
+    font-size: large;
+    padding: 10px;
+    border-radius: 10px;
+    box-sizing: border-box;
+    white-space: initial;
+    color: #242424;
+    border: 2px solid #242424;
+    background-color: rgba(255, 255, 255, 0.87);
+}
+
+.list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}

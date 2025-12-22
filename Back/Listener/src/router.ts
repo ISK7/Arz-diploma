@@ -1,14 +1,14 @@
 import { Router } from "express";
 import { sendToMail } from "./tg_connection.ts";
 import {prisma} from "./db_connection.ts"
-import jwt from "jsonwebtoken";
-import {ADMIN_PASSWORD, JWT_KEY, FILEPATH, ADMIN_DATA} from "./variables.ts";
+import {FILEPATH} from "./variables.ts";
 import multer from "multer";
-import path, { parse } from 'path';
+import path from 'path';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import closer from "./closer.ts";
 import { parseDate, yesterdayDate } from "./dateParser.ts";
+import { addRefreshToken, generateAccessToken, generateRefreshToken, verifyAccessToken, verifyRefreshToken } from "./jwtWorker.ts";
 
 const storage = multer.diskStorage({
   destination: (req: any, file: any, cb: any) => {
@@ -38,7 +38,7 @@ function authMiddleware(req: any, res: any, next: () => void) {
     const token = auth.split(" ")[1];
 
     try {
-        jwt.verify(token, JWT_KEY!);
+        verifyAccessToken(token);
         next();
     } catch (e) {
         return res.status(401).json({ error: "Invalid token" });
@@ -47,23 +47,75 @@ function authMiddleware(req: any, res: any, next: () => void) {
 
 const router = Router();
 
-router.post("/login", (req, res) => {
-    const { login, password }: { login: string; password: string } = req.body;
+router.put("/refresh", async (req, res) => {
+    const { refresh_token, deviceId }: { refresh_token: string, deviceId: string } = req.body;
+    if (!refresh_token) {
+        return res.status(400).json({ error: "Refresh token is required" });
+    }
+    try {
+        await verifyRefreshToken(refresh_token);
+        const newAccessToken = generateAccessToken(deviceId);
+        res.json({ accessToken: newAccessToken });
+    } catch (err) {
+        console.error("Refresh token error:", err);
+        return res.status(500).json({ error: "Server error" });
+    }
+});
+
+router.post("/login", async (req, res) => {
+    const { login, password, deviceId }: { login: string; password: string, deviceId: string } = req.body;
 
     console.log(`attempt to enter with login ${login} password ${password}`);
+    let rights = "";
+    let userId: number;
+    try {
+        const found = await prisma.users.findUnique({
+            where: {
+                login: login
+            }
+        });
 
-    if (!(login in ADMIN_DATA)) {
-        return res.status(401).json({ error: "Wrong login" });
+        if (!found) {
+            return res.status(401).json({ error: "Wrong login" });
+        }
+        if (found.password != password) {
+            return res.status(401).json({ error: "Wrong password" });
+        }
+        rights = found.rights;
+        userId = found.id;
+    } catch (err) {
+        console.log("Login failed. " + err);
+        return res.status(500).json({ error: "server failure" });
     }
 
-    if (ADMIN_DATA[login as keyof typeof ADMIN_DATA] !== password) {
-        return res.status(401).json({ error: "Wrong password" });
-    }
+    const acsess_token = generateAccessToken(deviceId);
+    const refresh_token = generateRefreshToken({ userId, deviceId });
+    await addRefreshToken(refresh_token, userId, deviceId);
 
-    const token = jwt.sign({}, JWT_KEY!, { expiresIn: "1h" });
-
-    res.json({ token });
+    res.json({ acsess_token, refresh_token, rights });
 });
+
+router.get("/rights", authMiddleware, async (req, res) => {
+    const { login, password, rights }: { login: string; password: string, rights: string } = req.body;
+
+    try {
+        const servRights = await prisma.users.findUnique({
+            where: {
+                login: login,
+                password: password
+            },
+            select: {
+                rights: true
+            }
+        })
+        if (rights == servRights?.rights) {
+            res.status(200);
+        } else res.status(403);
+    } catch (err) {
+        console.log("checkRights failed. " + err);
+        res.status(500).json({error: "server failure"});
+    }
+})
 
 router.post("/reg", upload.single("file"), async (req : any, res : any) => {
     const {name, second_name, patronim, wish, email, number} = req.body;

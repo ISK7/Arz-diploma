@@ -30,7 +30,30 @@ model Visitors {
   @@unique([name, second_name, patronim, email])
 }
 
+model Users {
+  id Int @id @default(autoincrement())
+  login String @unique
+  password String
+  rights String
+  refreshTokens RefreshToken[]
+}
+
 model Keys {
   key String @id
   isFree Boolean
 }
+
+model RefreshToken {
+  id         String   @id @default(uuid())
+  token String   @unique
+  userId    Int
+  user      Users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  deviceId  String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([deviceId])
+}
+

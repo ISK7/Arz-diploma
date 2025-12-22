@@ -1,0 +1,65 @@
+.MainCont {
+  padding: 20px;
+  background-color: var(--background-dark);
+  display: flex;
+  gap: 20px;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.MainCont > div {
+  background-color: var(--background-white);
+  padding: 20px;
+}
+
+.Header {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.Header a {
+  padding: 10px 20px;
+  background-color: var(--background-light);
+  text-decoration: none;
+}
+
+.Header a:hover {
+  background-color: var(--background-mid);
+}
+
+.Content {
+  min-height: 300px;
+}
+
+.Header a.ActiveNav {
+  background-color: var(--background-mid);
+}
+
+.button {
+    font-size: large;
+    display: inline;
+    margin-top: 10px;
+    min-height: 30px;
+    min-width: 10%;
+    padding: 10px;
+    border-radius: 10px;
+    box-sizing: border-box;
+    color: #242424;
+    border: 2px solid #242424;
+    background-color: rgba(255, 255, 255, 0.87);
+}
+
+.buttonActive {
+    font-size: large;
+    display: inline;
+    margin-top: 10px;
+    min-height: 30px;
+    min-width: 10%;
+    padding: 10px;
+    border-radius: 10px;
+    box-sizing: border-box;
+    color: #242424;
+    border: 2px solid #242424;
+    background-color: rgb(180, 180, 180);
+}

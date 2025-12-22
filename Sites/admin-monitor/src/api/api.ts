@@ -1,41 +1,134 @@
 import type { data } from "../classes/data.ts";
 import type { key } from "../classes/key.ts";
+import { useAccountStore } from "../storage/account.store.ts";
+import { useRightsStore } from "../storage/rights.store.ts";
 
 const BASE_URL = "http://localhost:3000/pharmacygarden";
+let accessToken: string | null = null
+let refreshPromise: Promise<string> | null = null;
+
+export async function authFetch(
+  input: RequestInfo,
+  init: RequestInit = {}
+): Promise<Response> {
+  const headers = new Headers(init.headers)
+
+  if (accessToken) {
+    headers.set('Authorization', `Bearer ${accessToken}`)
+  }
+
+  const response = await fetch(input, {
+    ...init,
+    headers,
+  })
+
+  if (response.status !== 401) {
+    return response
+  }
+
+  // если это refresh-запрос — выходим
+  if (input.toString().includes('/refresh')) {
+    throw new Error('Unauthorized')
+  }
+
+  if (!refreshPromise) {
+    refreshPromise = refreshToken()
+      .finally(() => (refreshPromise = null))
+  }
+
+  const newToken = await refreshPromise
+  accessToken = newToken
+
+  headers.set('Authorization', `Bearer ${newToken}`)
+
+  return fetch(input, {
+    ...init,
+    headers,
+  })
+}
+
+export async function refreshToken(): Promise<string> {
+  const refresh_token = localStorage.getItem("refresh_token");
+  const deviceId = localStorage.getItem("deviceId");
+  if (!refresh_token || !deviceId) {
+    throw new Error("No refresh token or device ID found");
+  }
+  const res = await fetch(BASE_URL + "/refresh", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refresh_token, deviceId })
+  });
+
+  if(res.status == 401) {
+    throw new Error("Unauthorized");
+  }
+
+  if (res.ok) {
+    const { accessToken } = await res.json();
+    localStorage.setItem("access_token", accessToken);
+    return accessToken;
+  } else {
+    throw new Error(`refreshToken failed: ${res.status}`);
+  }
+}
+
+export async function checkRights(): Promise<boolean> {
+  const token = localStorage.getItem("access_token");
+  const login = useAccountStore((state) => state.login);
+  const password = useAccountStore((state) => state.password);
+  const rights = useRightsStore((store) => store.rights);
+  
+  const res = await authFetch(BASE_URL + "/rights", {
+    method: "GET",
+    headers: {"Authorization": `Bearer ${token}`},
+    body: JSON.stringify({ login, password, rights })
+  })
+
+  if (res.ok) {
+    return true;
+  } else {
+    console.log(res.statusText.toString())
+    return false;
+  }
+}
 
 export async function logIn(login:string, password:string): Promise<string> {
+  const deviceId = localStorage.getItem('deviceId') ?? crypto.randomUUID()
+  localStorage.setItem('deviceId', deviceId)
+
   const res = await fetch(BASE_URL + "/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ login, password })
+    body: JSON.stringify({ login, password, deviceId })
   });
-
+  
   if (res.ok) {
-    const { token } = await res.json();
-    localStorage.setItem("token", token);
+    const { access_token, refresh_token, rights } = await res.json();
+    localStorage.setItem("access_token", access_token);
+    localStorage.setItem("refresh_token", refresh_token);
+    return rights;
   } else {
-    return res.statusText.toString();
+    console.log(res.statusText.toString());
+    throw new Error(`logIn failed: ${res.status}`);
   }
-  return "OK"
 }
 
 export async function getList(): Promise<data[]> {
-  const token = localStorage.getItem("token");
-  const res = await fetch(BASE_URL + "/admin", {
+  const token = localStorage.getItem("access_token");
+  const res = await authFetch(BASE_URL + "/admin", {
     method: "GET",
-    headers: {
-      "Authorization": `Bearer ${token}`},
+    headers: {"Authorization": `Bearer ${token}`},
   });
 
   if (!res.ok) {
     throw new Error(`getList failed: ${res.status}`);
   }
-    return res.json();
+  return res.json();
 }
 
 export async function getFile(name: string): Promise<string> {
-  const token = localStorage.getItem("token");
-  const res = await fetch(BASE_URL + `/admin/${name}`, {
+  const token = localStorage.getItem("access_token");
+  const res = await authFetch(BASE_URL + `/admin/${name}`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}`},
   });
@@ -47,8 +140,8 @@ export async function getFile(name: string): Promise<string> {
 }
 
 export async function getKeys(): Promise<string[]> {
-  const token = localStorage.getItem("token");
-  const res = await fetch(BASE_URL + `/admin/keys`, {
+  const token = localStorage.getItem("access_token");
+  const res = await authFetch(BASE_URL + `/admin/keys`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
   });
@@ -63,8 +156,8 @@ export async function getKeys(): Promise<string[]> {
 
 
 export async function accept(ind: number, key: string, date: string) {
-  const token = localStorage.getItem("token");
-  const res = await fetch(BASE_URL + "/admin", {
+  const token = localStorage.getItem("access_token");
+  const res = await authFetch(BASE_URL + "/admin", {
     method: "PUT",
     headers: { "Content-Type": "application/json" , "Authorization": `Bearer ${token}`},
     body: JSON.stringify({ind, key, date}),
@@ -78,8 +171,8 @@ export async function accept(ind: number, key: string, date: string) {
 }
 
 export async function refuse(ind: number) {
-  const token = localStorage.getItem("token");
-  const res = await fetch(BASE_URL + "/admin", {
+  const token = localStorage.getItem("access_token");
+  const res = await authFetch(BASE_URL + "/admin", {
     method: "DELETE",
     headers: { "Content-Type": "application/json" , "Authorization": `Bearer ${token}`},
     body: JSON.stringify({ind}),
@@ -93,8 +186,8 @@ export async function refuse(ind: number) {
 }
 
 export async function close(ind: number) {
-  const token = localStorage.getItem("token");
-  const res = await fetch(BASE_URL + "/admin/close", {
+  const token = localStorage.getItem("access_token");
+  const res = await authFetch(BASE_URL + "/admin/close", {
     method: "PUT",
     headers: { "Content-Type": "application/json" , "Authorization": `Bearer ${token}`},
     body: JSON.stringify({ind}),
@@ -106,8 +199,8 @@ export async function close(ind: number) {
 }
 
 export async function getFullKeys(): Promise<key[]> {
-  const token = localStorage.getItem("token");
-  const res = await fetch(BASE_URL + `/redactor`, {
+  const token = localStorage.getItem("access_token");
+  const res = await authFetch(BASE_URL + `/redactor`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
   });
@@ -120,8 +213,8 @@ export async function getFullKeys(): Promise<key[]> {
 }
 
 export async function addKey(newKey: string) {
-  const token = localStorage.getItem("token");
-  const res = await fetch(BASE_URL + `/redactor`, {
+  const token = localStorage.getItem("access_token");
+  const res = await authFetch(BASE_URL + `/redactor`, {
     method: "POST",
     headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify({ newKey }),
@@ -135,8 +228,8 @@ export async function addKey(newKey: string) {
 }
 
 export async function deleteKey(keyToDelete: string) {
-  const token = localStorage.getItem("token");
-  const res = await fetch(BASE_URL + `/redactor`, {
+  const token = localStorage.getItem("access_token");
+  const res = await authFetch(BASE_URL + `/redactor`, {
     method: "DELETE",
     headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify({ keyToDelete }),
