@@ -35,3 +35,10 @@
     border: 2px solid #242424;
     background-color: rgba(255, 255, 255, 0.87);
 }
+
+.border {
+    border: 2px solid #242424;
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 10px;
+}

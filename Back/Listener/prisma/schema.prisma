@@ -26,8 +26,6 @@ model Visitors {
   date DateTime?
   wish String?
   status Int
-
-  @@unique([name, second_name, patronim, email])
 }
 
 model Users {

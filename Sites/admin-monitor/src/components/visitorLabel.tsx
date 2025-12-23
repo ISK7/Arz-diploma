@@ -50,7 +50,6 @@ export const VisitorLabel = ({visitor}: {visitor: data}) => {
             <button disabled={loading} className={styles.button} onClick={handleRedact}>
                 Редактировать
              </button>
-            <hr></hr>
         </div>
     );
 };

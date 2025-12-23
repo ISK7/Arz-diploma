@@ -9,7 +9,9 @@
 
 .visitor_label {
     margin-top: 5%;
-    padding-top: 5%;
+    border: 2px solid #242424;
+    border-radius: 10px;
+    padding: 10px;
 }
 
 .img {
@@ -28,6 +30,7 @@
     box-sizing: border-box;
     color: #242424;
     border: 2px solid #242424;
+    position: relative;
     background-color: rgba(255, 255, 255, 0.87);
 }
 
@@ -35,3 +38,11 @@ button:disabled {
   color: rgba(0, 0, 0, 0.5);
   cursor: not-allowed;
 }
+
+.border {
+    border: 2px solid #242424;
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 10px;
+}
+

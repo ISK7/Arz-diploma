@@ -11,10 +11,9 @@ export default function Keys () {
     const [newKey, setNewKey] = useState("");
 
     useEffect(() => {
-        (async () => {let acess = await checkRights();
-            if(!acess) return(<div>You do not have acess to this page</div>)
-        });
-
+        checkRights().then((access) => {
+            if(!access) return(<div>You do not have acess to this page</div>)
+        })
         setLoading(true)
         getFullKeys().then((res) => {
             setKeys(res);
@@ -41,7 +40,7 @@ export default function Keys () {
         }
     }
 
-        async function handleDelete(ind: string) {
+    async function handleDelete(ind: string) {
         setLoading(true);
         setError(null);
         try {
