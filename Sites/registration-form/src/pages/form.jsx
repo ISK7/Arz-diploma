@@ -77,7 +77,7 @@ export default function Form() {
         <div>
             <h2>Регистрация на посещение аптекарского огорода</h2>
             <div className={styles.text}>Введите необходимые данные и ждите ответа на почту</div> <br/>
-            <div className={styles.text}>Обязательно введите имя, фамилию, отчество, электронную почту и файл с документом, подтверждающим личность</div> <br/>
+            <div className={styles.text}>Обязательно введите имя, фамилию, отчество, электронную почту и файл с документом, подтверждающим личность (до 5 МБ)</div> <br/>
 
             <TextLabel plhld={"Имя*"} ident={"name"} value={name} onChange={e => setName(e.target.value)}/> <br/>
             {noName && <div className={styles.error}>Введите имя</div>}

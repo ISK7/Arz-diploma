@@ -5,12 +5,15 @@ import { useEffect, useState } from "react";
 import { useFiltersStore } from "../storage/filters.store";
 import type { data } from "../classes/data";
 import styles from "./monitor.module.css"
+import { useRightsStore } from "../storage/rights.store";
 
 export default function Monitor() {
     const [loading, setLoading] = useState(true);
     const [visitors, setVisitors] = useState<data[]>();
     const [filtred, setFiltred] = useState<data[]>();
     const [error, setError] = useState<string | null>(null);
+    const [haveRights, setHaveRights] = useState(false);
+    const isAdmin =  useRightsStore((state) => state.requestAccess);
 
     const [search, setSearch] = useState("");
     const showActual = useFiltersStore((state) => state.showActual);
@@ -24,13 +27,12 @@ export default function Monitor() {
 
     useEffect(() => {
         (async () => {
-            let acess = await checkRights();
-            if(!acess) return(<div className={styles.text}>You do not have acess to this page</div>)
-        });
+            let access = await checkRights();
+            setHaveRights(access);
+        })();
 
         setLoading(true)
         getList().then((res) => {
-            console.log(res);
             setVisitors(res);
         }).catch(err => {
             setError(`error at load ${err}`);
@@ -64,24 +66,28 @@ export default function Monitor() {
     </div>
     return (
         <div className={styles.monitor}>
-            <h2>Ожидающие разрешения</h2>
-            <br/>
-            {(loading) && <>Загрузка...</>}
-            {!loading && <>
-                <Checkbox ind="Actual" plhld="Ожидающие" value={showActual} onChange={setActual}/>
-                <Checkbox ind="Confirmed" plhld="Подтверждённые" value={showConfirmed} onChange={setConfirmed}/>
-                <Checkbox ind="Archived" plhld="Архивированные" value={showArchived} onChange={setArchived}/>
-                <Checkbox ind="Declined" plhld="Отклонённые" value={showDeclined} onChange={setDeclined}/>
+            {isAdmin && haveRights && <div>
+                <h2>Ожидающие разрешения</h2>
                 <br/>
-                <input type="text" placeholder="Поиск..." value={search} className={styles.input} onChange={e => setSearch(e.target.value)}/>
-                <br/>
-            </>}
-            <div className={styles.list}>
-                {!loading && filtred && filtred.length > 0 && filtred.map(vis => (
-                    <VisitorLabel visitor={vis} key={vis.id}></VisitorLabel>
-                ))}
+                {(loading) && <>Загрузка...</>}
+                {!loading && <>
+                    <Checkbox ind="Actual" plhld="Ожидающие" value={showActual} onChange={setActual}/>
+                    <Checkbox ind="Confirmed" plhld="Подтверждённые" value={showConfirmed} onChange={setConfirmed}/>
+                    <Checkbox ind="Archived" plhld="Архивированные" value={showArchived} onChange={setArchived}/>
+                    <Checkbox ind="Declined" plhld="Отклонённые" value={showDeclined} onChange={setDeclined}/>
+                    <br/>
+                    <input type="text" placeholder="Поиск..." value={search} className={styles.input} onChange={e => setSearch(e.target.value)}/>
+                    <br/>
+                </>}
+                <div className={styles.list}>
+                    {!loading && filtred && filtred.length > 0 && filtred.map(vis => (
+                        <VisitorLabel visitor={vis} key={vis.id}></VisitorLabel>
+                    ))}
+                </div>
+                {!loading && filtred && filtred.length == 0 && <>Данных нет</>}
             </div>
-            {!loading && filtred && filtred.length == 0 && <>Данных нет</>}
+        }
+        {(!haveRights || !isAdmin) && <div>You do not have acess to this page</div>}
         </div>
     );
 }

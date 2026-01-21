@@ -6,11 +6,10 @@ const PORT = 3000;
 const whitelist = ['http://localhost:5173', 'http://localhost:5174'/** other domains if any */ ]
 const path = "/pharmacygarden"
 
-
 const app = express();
 app.use(express.json());
 const corsOptions = {
-  credentials: true,
+  credentials: false,
   origin: (origin : any, callback : any) => {
     if(whitelist.indexOf(origin) !== -1) {
       callback(null, true)

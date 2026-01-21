@@ -4,6 +4,7 @@ import Select from 'react-select'
 import { accept, getKeys, refuse, close, getFile, checkRights } from '../api/api';
 import styles from "./redactor.module.css"
 import type { data } from '../classes/data';
+import { useRightsStore } from '../storage/rights.store';
 
 export default function VisitorRedactor() {
     const location = useLocation();
@@ -11,6 +12,8 @@ export default function VisitorRedactor() {
 
     const [loading, setLoading] = useState(false);
     const [ready, setReady] = useState(false);
+    const [haveRights, setHaveRights] = useState(false);
+    const isAdmin =  useRightsStore((state) => state.requestAccess);
 
     const [status, setStatus] = useState("");
     const [error, setError] = useState<string | null>(null);
@@ -78,9 +81,9 @@ export default function VisitorRedactor() {
     }
 
     useEffect(() => {
-        (async () => {let acess = await checkRights();
-            if(!acess) return(<div className={styles.text}>You do not have acess to this page</div>)
-        });
+        (async () => {let access = await checkRights();
+            setHaveRights(access);
+        })();
         if(visitor.date)
             setDate(visitor.date);
 
@@ -139,47 +142,49 @@ export default function VisitorRedactor() {
 
     return (
         <div>
-            <div className={styles.text}>
-                <div className={styles.border}>
-                    {visitor.name} {visitor.second_name} {visitor.patronim}
-                    <br/>
-                    {visitor.email}
-                    <br/>
-                    {visitor.number &&
-                    <div className={styles.text}> {visitor.number}<br/> </div>}
+            {haveRights && isAdmin && <div>
+                <div className={styles.text}>
+                    <div className={styles.border}>
+                        {visitor.name} {visitor.second_name} {visitor.patronim}
+                        <br/>
+                        {visitor.email}
+                        <br/>
+                        {visitor.number &&
+                        <div className={styles.text}> {visitor.number}<br/> </div>}
+                    </div>
+                    <div className={styles.border}>
+                        Предпочтения визита:
+                        <br/>
+                        {visitor.wish}
+                        <br/>
+                    </div>
                 </div>
-                <div className={styles.border}>
-                    Предпочтения визита:
-                    <br/>
-                    {visitor.wish}
-                    <br/>
-                </div>
-            </div>
-            
-            {visitor.image && image &&
-            <div><img className={styles.img} alt="Что-то пошло не так" src={image}></img></div>}
-            <div className={styles.text}> {status}<br/> </div>
+                
+                {visitor.image && image &&
+                <div><img className={styles.img} alt="Что-то пошло не так" src={image}></img></div>}
+                <div className={styles.text}> {status}<br/> </div>
 
-            <input type="date" placeholder="Дата" value={date} className={styles.input}
-                onChange={e => setDate(e.target.value)}/>
-            <Select value={option} onChange={e => {if(e) setOption(e)}}
-                className={styles.select} options={options} placeholder="Ключи"/>
+                <input type="date" placeholder="Дата" value={date} className={styles.input}
+                    onChange={e => setDate(e.target.value)}/>
+                <Select value={option} onChange={e => {if(e) setOption(e)}}
+                    className={styles.select} options={options} placeholder="Ключи"/>
 
-            {error && <div className={styles.error}>{error}</div>}
+                {error && <div className={styles.error}>{error}</div>}
 
-            <button disabled={loading || !ready} onClick={handleAccept} className={styles.button}>
-                Подтвердить
-            </button>
-            <button disabled={loading} onClick={handleRefuse} className={styles.button}>
-                Отказать
-            </button>
-            <button disabled={loading} onClick={handleClose} className={styles.button}>
-                Закрыть заявку
-            </button> <br/>
-            <button disabled={loading} onClick={handleExit} className={styles.button}>
-                Выйти из редактора
-            </button>
-
+                <button disabled={loading || !ready} onClick={handleAccept} className={styles.button}>
+                    Подтвердить
+                </button>
+                <button disabled={loading} onClick={handleRefuse} className={styles.button}>
+                    Отказать
+                </button>
+                <button disabled={loading} onClick={handleClose} className={styles.button}>
+                    Закрыть заявку
+                </button> <br/>
+                <button disabled={loading} onClick={handleExit} className={styles.button}>
+                    Выйти из редактора
+                </button>
+            </div>}
+        {(!haveRights || !isAdmin) && <div>You do not have acess to this page</div>}
         </div>
     );
 }

@@ -74,13 +74,13 @@ export async function refreshToken(): Promise<string> {
 
 export async function checkRights(): Promise<boolean> {
   const token = localStorage.getItem("access_token");
-  const login = useAccountStore((state) => state.login);
-  const password = useAccountStore((state) => state.password);
-  const rights = useRightsStore((store) => store.rights);
+  const login = useAccountStore.getState().login;
+  const password = useAccountStore.getState().password;
+  const rights = useRightsStore.getState().rights;
   
   const res = await authFetch(BASE_URL + "/rights", {
-    method: "GET",
-    headers: {"Authorization": `Bearer ${token}`},
+    method: "PUT",
+    headers: {"Authorization": `Bearer ${token}`, "Content-Type": "application/json"},
     body: JSON.stringify({ login, password, rights })
   })
 
@@ -126,9 +126,9 @@ export async function getList(): Promise<data[]> {
   return res.json();
 }
 
-export async function getFile(name: string): Promise<string> {
+export async function getFile(img: string): Promise<string> {
   const token = localStorage.getItem("access_token");
-  const res = await authFetch(BASE_URL + `/admin/${name}`, {
+  const res = await authFetch(BASE_URL + `/admin/${img}`, {
     method: "GET",
     headers: { "Authorization": `Bearer ${token}`},
   });

@@ -7,7 +7,6 @@ import VisitorRedactor from './pages/redactor';
 import Keys from './pages/keys';
 
 function App() {
-
   return (
     <BrowserRouter basename="/pharmacygarden">
       <Routes>

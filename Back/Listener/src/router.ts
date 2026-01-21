@@ -95,7 +95,7 @@ router.post("/login", async (req, res) => {
     res.json({ acsess_token, refresh_token, rights });
 });
 
-router.get("/rights", authMiddleware, async (req, res) => {
+router.put("/rights", authMiddleware, async (req, res) => {
     const { login, password, rights }: { login: string; password: string, rights: string } = req.body;
 
     try {
@@ -109,8 +109,10 @@ router.get("/rights", authMiddleware, async (req, res) => {
             }
         })
         if (rights == servRights?.rights) {
-            res.status(200);
-        } else res.status(403);
+            return res.sendStatus(200);
+        } else {
+            return res.sendStatus(403);
+        }
     } catch (err) {
         console.log("checkRights failed. " + err);
         res.status(500).json({error: "server failure"});
@@ -138,11 +140,11 @@ router.post("/reg", upload.single("file"), async (req : any, res : any) => {
         res.json(1);
     } catch (err: any) {
         // Ошибка уникальности
-        if (err.code === "P2002") {
-            return res.status(409).json({
-                error: "Данные уже существуют в базе"
-            });
-        }
+        // if (err.code === "P2002") {
+        //     return res.status(409).json({
+        //         error: "Данные уже существуют в базе"
+        //     });
+        // }
         if (req.file) {
             await fs.unlink(req.file.path);
         }

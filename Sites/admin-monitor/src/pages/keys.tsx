@@ -3,17 +3,21 @@ import type { key } from "../classes/key";
 import { addKey, getFullKeys, deleteKey, checkRights } from "../api/api";
 import KeyLabel from "../components/keyLabel";
 import styles from "./keys.module.css";
+import { useRightsStore } from "../storage/rights.store";
 
 export default function Keys () {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [keys, setKeys] = useState<key[]>([]);
     const [newKey, setNewKey] = useState("");
+    const [haveRights, setHaveRights] = useState(false)
+    const isRedactor = useRightsStore((state) => state.keyAccess);
 
     useEffect(() => {
-        checkRights().then((access) => {
-            if(!access) return(<div>You do not have acess to this page</div>)
-        })
+        (async () => {
+            const access = await checkRights();
+            setHaveRights(access);
+        })();
         setLoading(true)
         getFullKeys().then((res) => {
             setKeys(res);
@@ -56,20 +60,25 @@ export default function Keys () {
 
     return (
         <div>
-            <h2>Ключи</h2> <br/>
-            {(loading) && <>Загрузка...</>}
-            {error && <div>{error}</div>}
-            {!loading && !error && 
-            <div className={styles.list}>
-                {keys.map((keyObj) => ( <KeyLabel key={keyObj.key} keyVal={keyObj} handleDelete={handleDelete}/>
-                ))}
-            </div>}
-            {!loading && !error && 
-                <div>
-                    <input type="text" value={newKey} className={styles.input}
-                        onChange={(e) => setNewKey(e.target.value)} placeholder="Новый ключ"/> <br/>
-                    <button onClick={handleAddKey} className={styles.button}>Добавить ключ</button>
+            {haveRights && isRedactor &&
+            <div>
+                <h2>Ключи</h2> <br/>
+                {(loading) && <>Загрузка...</>}
+                {error && <div>{error}</div>}
+                {!loading && !error && 
+                <div className={styles.list}>
+                    {keys.map((keyObj) => ( <KeyLabel key={keyObj.key} keyVal={keyObj} handleDelete={handleDelete}/>
+                    ))}
                 </div>}
+                {!loading && !error && 
+                    <div>
+                        <input type="text" value={newKey} className={styles.input}
+                            onChange={(e) => setNewKey(e.target.value)} placeholder="Новый ключ"/> <br/>
+                        <button onClick={handleAddKey} className={styles.button}>Добавить ключ</button>
+                    </div>}
+            </div>
+            }
+            {(!haveRights || !isRedactor) && <div>You do not have acess to this page</div>}
         </div>
     );
 }
